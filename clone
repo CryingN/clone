@@ -1,0 +1,47 @@
+#!/bin/bash
+
+export git_path="/usr/share"
+export shell_path="/bin"
+
+name=${1##*/}
+new_name=""
+
+# 使用git对文件进行配置,一般放置在/usr/share处
+cd $git_path
+if [ -f "$git_path/$name" ];
+then
+	echo -e "\033[33m[Warn]\033[0m$git_path已存在同名文件,请检查后重新,命名文件名"
+	read -p "为脚本设置新文件名:" new_name
+	if [ "$new_name" == "" ]
+	then
+		exit
+	else
+		git clone $1
+		echo -e "\033[32m[True]\033[0m$new_name项目已配置在$git_path处"
+		$name = $new_name
+	fi
+else
+	git clone $1
+	echo -e "\033[32m[True]\033[0m$name项目已配置在$git_path处"
+fi
+
+# 创建脚本,赋予权限后一般放置在/bin位置
+cd
+while [ -f "$name" ]
+do
+	echo -e "\033[33m[Warn]\033[0m检测到当前路径存在同名脚本,请检查或更换到非root目录完可成执行脚本,当前路径:"
+	pwd
+	read -p "设置新路径:" the_path
+	if [ "$the_path" == "" ]
+	then
+		exit
+	else
+		cd $the_path
+	fi
+done
+echo "#!/bin/sh" > $name
+echo "cd $git_path/$name" >> $name
+echo "exec python $name.py \"\$@\"" >> $name
+chmod 755 $name
+mv $name /bin/$name
+echo -e "\033[32m[True]\033[0m$name脚本在$shell_path配置成功"
